@@ -1,5 +1,6 @@
 package com.benxiaopao.provider.service;
 
+import com.benxiaopao.provider.common.util.KeyUtil;
 import com.benxiaopao.provider.dao.map.ProductMapper;
 import com.benxiaopao.provider.dao.model.Product;
 import com.benxiaopao.provider.dao.model.ProductExample;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -43,7 +45,7 @@ public class ProductService {
         //查询列表
         Product product = new Product();
         if(tpListProduct.getProduct() != null){
-            BeanUtils.copyProperties(tpListProduct.getProduct(), product, "createTime", "updateTime");
+            BeanUtils.copyProperties(tpListProduct.getProduct(), product, "createTime", "updateTime", "price");
         }
         List<Product> products = this.listProductByWhere(product, start, pageSize);
         int count = this.countProductByWhere(product);
@@ -60,9 +62,10 @@ public class ProductService {
             @Override
             public TRProduct apply(Product product) {
                 TRProduct trProduct = new TRProduct();
-                BeanUtils.copyProperties(product, trProduct, "createTime", "updateTime");
+                BeanUtils.copyProperties(product, trProduct, "createTime", "updateTime", "price");
                 trProduct.setCreateTime(product.getCreateTime().getTime());
                 trProduct.setUpdateTime(product.getUpdateTime().getTime());
+                trProduct.setPrice(product.getPrice().doubleValue());
                 return trProduct ;
             }
         }).toList();
@@ -80,7 +83,7 @@ public class ProductService {
     public TRListProduct listProduct(TPListProduct tpListProduct) throws Exception {
         Product product = new Product();
         if(tpListProduct.getProduct() != null){
-            BeanUtils.copyProperties(tpListProduct.getProduct(), product, "createTime", "updateTime");
+            BeanUtils.copyProperties(tpListProduct.getProduct(), product, "createTime", "updateTime", "price");
         }
         List<Product> products = this.listProductByWhere(product, null, null);
 
@@ -93,9 +96,10 @@ public class ProductService {
             @Override
             public TRProduct apply(Product product) {
                 TRProduct trProduct = new TRProduct();
-                BeanUtils.copyProperties(product, trProduct, "createTime", "updateTime");
+                BeanUtils.copyProperties(product, trProduct, "createTime", "updateTime", "price");
                 trProduct.setCreateTime(product.getCreateTime().getTime());
                 trProduct.setUpdateTime(product.getUpdateTime().getTime());
+                trProduct.setPrice(product.getPrice().doubleValue());
                 return trProduct ;
             }
         }).toList();
@@ -159,7 +163,9 @@ public class ProductService {
      */
     public int insertProduct(TPProduct tpProduct) throws Exception {
         Product product = new Product();
-        BeanUtils.copyProperties(tpProduct, product, "createTime", "updateTime");
+        BeanUtils.copyProperties(tpProduct, product, "createTime", "updateTime", "price");
+        product.setProductId(KeyUtil.genUniqueKey());
+        product.setPrice(BigDecimal.valueOf(tpProduct.getPrice()));
         return this.insertProduct(product);
     }
 
@@ -181,7 +187,11 @@ public class ProductService {
      */
     public int updateProduct(TPProduct tpProduct) throws Exception {
         Product product = new Product();
-        BeanUtils.copyProperties(tpProduct, product, "createTime", "updateTime");
+        BeanUtils.copyProperties(tpProduct, product, "createTime", "updateTime", "price");
+        product.setPrice(BigDecimal.valueOf(tpProduct.getPrice()));
+        if(product.getRestaurantId() <= 0){
+            product.setRestaurantId(null);
+        }
         return this.updateProduct(product);
     }
 
@@ -222,9 +232,10 @@ public class ProductService {
         Product product = this.getProductById(productId);
         if(product != null){
             trProduct = new TRProduct();
-            BeanUtils.copyProperties(product, trProduct, "createTime", "updateTime");
+            BeanUtils.copyProperties(product, trProduct, "createTime", "updateTime", "price");
             trProduct.setCreateTime(product.getCreateTime().getTime());
             trProduct.setUpdateTime(product.getUpdateTime().getTime());
+            trProduct.setPrice(product.getPrice().doubleValue());
         }
         return trProduct;
     }
