@@ -154,6 +154,13 @@ public class ProductService {
         if(product != null && StringUtils.hasText(product.getProductName())){
             criteria.andProductNameEqualTo(product.getProductName());
         }
+
+        if(product != null && product.getRestaurantId() != null && product.getRestaurantId() > 0){
+            criteria.andRestaurantIdEqualTo(product.getRestaurantId());
+        }
+        if(product != null && product.getCategoryType() != null && product.getCategoryType() > 0){
+            criteria.andCategoryTypeEqualTo(product.getCategoryType());
+        }
         return example;
     }
 

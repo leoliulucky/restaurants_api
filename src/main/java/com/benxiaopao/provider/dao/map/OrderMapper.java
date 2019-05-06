@@ -204,4 +204,13 @@ public interface OrderMapper {
         "where orderId = #{orderId,jdbcType=VARCHAR}"
     })
     int updateByPrimaryKey(Order record);
+
+    /**
+     * 根据订单号获取订单对象，并加锁
+     * @param orderId
+     * @return
+     * @author liupoyang
+     */
+    @Select("SELECT * FROM order_info WHERE orderId = #{orderId} for update")
+    Order getOrderByIdForUpdate(String orderId);
 }

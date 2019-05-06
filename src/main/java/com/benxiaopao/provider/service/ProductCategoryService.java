@@ -158,9 +158,13 @@ public class ProductCategoryService {
         ProductCategoryExample example = new ProductCategoryExample();
         ProductCategoryExample.Criteria criteria = example.createCriteria();
 
-        //名称
+        // 名称
         if(productCategory != null && StringUtils.hasText(productCategory.getCategoryName())){
             criteria.andCategoryNameEqualTo(productCategory.getCategoryName());
+        }
+        // 餐饮ID
+        if(productCategory != null && productCategory.getRestaurantId() != null && productCategory.getRestaurantId() > 0){
+            criteria.andRestaurantIdEqualTo(productCategory.getRestaurantId());
         }
         return example;
     }

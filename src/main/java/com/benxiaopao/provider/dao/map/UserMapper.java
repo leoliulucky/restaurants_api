@@ -3,17 +3,8 @@ package com.benxiaopao.provider.dao.map;
 import com.benxiaopao.provider.dao.model.User;
 import com.benxiaopao.provider.dao.model.UserExample;
 import java.util.List;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.DeleteProvider;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.InsertProvider;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Result;
-import org.apache.ibatis.annotations.Results;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.SelectProvider;
-import org.apache.ibatis.annotations.Update;
-import org.apache.ibatis.annotations.UpdateProvider;
+
+import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 
 public interface UserMapper {
@@ -73,6 +64,7 @@ public interface UserMapper {
         "#{qqUId,jdbcType=VARCHAR}, #{qqAccessToken,jdbcType=VARCHAR}, ",
         "#{registerChannelId,jdbcType=VARCHAR})"
     })
+    @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="userId", before=false, resultType=Integer.class)
     int insert(User record);
 
     /**
@@ -82,6 +74,7 @@ public interface UserMapper {
      * @mbg.generated Sat Apr 20 10:26:44 CST 2019
      */
     @InsertProvider(type=UserSqlProvider.class, method="insertSelective")
+    @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="userId", before=false, resultType=Integer.class)
     int insertSelective(User record);
 
     /**
@@ -204,4 +197,94 @@ public interface UserMapper {
         "where userId = #{userId,jdbcType=INTEGER}"
     })
     int updateByPrimaryKey(User record);
+
+    /**
+     * 根据email获取用户对象
+     * @param email
+     * @return
+     * @author liupoyang
+     */
+    @Select("select * from user_info where email= #{email}")
+    User getUserByEmail(String email);
+
+    /**
+     * 根据mobile获取用户对象
+     * @param mobile
+     * @return
+     * @author liupoyang
+     */
+    @Select("SELECT * FROM user_info WHERE mobile = #{mobile}")
+    User getUserByMobile(String mobile);
+
+    /**
+     * 根据用户昵称获取用户对象
+     * @param nickName
+     * @return
+     * @author liupoyang
+     */
+    @Select("select * from user_info where nickName= #{nickName}")
+    User getUserByNickName(String nickName);
+
+    /**
+     * 判断用户昵称是否已经注册
+     * @param nickName
+     * @return
+     * @author liupoyang
+     */
+    @Select("select count(1) from user_info where nickName = #{nickName}")
+    int isNickNameExist(String nickName);
+
+    /**
+     * 判断邮箱是否注册
+     * @param email
+     * @return
+     * @author liupoyang
+     */
+    @Select("select count(1) from user_info where email= #{email}")
+    public int isEmailExist(String email);
+
+    /**
+     * 判断手机号是否注册
+     * @param mobile
+     * @return
+     * @author liupoyang
+     */
+    @Select("select count(*) from user_info where mobile = #{mobile}")
+    int isMobileExist(String mobile);
+
+    /**
+     * 根据email获取用户对象，并加锁
+     * @param email
+     * @return
+     * @author liupoyang
+     */
+    @Select("select * from user_info where email= #{email} for update")
+    User getUserByEmailForUpdate(String email);
+
+    /**
+     * 根据用户邮箱重置登录密码
+     * @param email
+     * @param password
+     * @author liupoyang
+     */
+    @Update("update user_info set password = #{password} where email=#{email} ")
+    void resetUserPassword(@Param("email")String email, @Param("password")String password);
+
+    /**
+     * 根据mobile获取用户对象，并加锁
+     * @param mobile
+     * @return
+     * @author liupoyang
+     */
+    @Select("SELECT * FROM user_info WHERE mobile = #{mobile} for update")
+    User getUserByMobileForUpdate(String mobile);
+
+    /**
+     * 根据用户手机重置登录密码
+     * @param mobile
+     * @param password
+     * @author liupoyang
+     */
+    @Update("update user_info set password = #{password} where mobile=#{mobile} ")
+    void resetUserPasswordByMobile(@Param("mobile")String mobile, @Param("password")String password);
 }

@@ -3,17 +3,8 @@ package com.benxiaopao.provider.dao.map;
 import com.benxiaopao.provider.dao.model.MobileAuthen;
 import com.benxiaopao.provider.dao.model.MobileAuthenExample;
 import java.util.List;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.DeleteProvider;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.InsertProvider;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Result;
-import org.apache.ibatis.annotations.Results;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.SelectProvider;
-import org.apache.ibatis.annotations.Update;
-import org.apache.ibatis.annotations.UpdateProvider;
+
+import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 
 public interface MobileAuthenMapper {
@@ -61,6 +52,7 @@ public interface MobileAuthenMapper {
         "#{sendTime,jdbcType=TIMESTAMP}, #{validCode,jdbcType=VARCHAR}, ",
         "#{userId,jdbcType=INTEGER})"
     })
+    @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="mobileAuthenId", before=false, resultType=Long.class)
     int insert(MobileAuthen record);
 
     /**
@@ -70,6 +62,7 @@ public interface MobileAuthenMapper {
      * @mbg.generated Sat Apr 20 10:27:14 CST 2019
      */
     @InsertProvider(type=MobileAuthenSqlProvider.class, method="insertSelective")
+    @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="mobileAuthenId", before=false, resultType=Long.class)
     int insertSelective(MobileAuthen record);
 
     /**
@@ -151,4 +144,5 @@ public interface MobileAuthenMapper {
         "where mobileAuthenId = #{mobileAuthenId,jdbcType=BIGINT}"
     })
     int updateByPrimaryKey(MobileAuthen record);
+
 }

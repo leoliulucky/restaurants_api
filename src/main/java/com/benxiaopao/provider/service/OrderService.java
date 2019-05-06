@@ -1,19 +1,26 @@
 package com.benxiaopao.provider.service;
 
+import com.benxiaopao.provider.common.util.KeyUtil;
+import com.benxiaopao.provider.dao.map.OrderItemMapper;
 import com.benxiaopao.provider.dao.map.OrderMapper;
 import com.benxiaopao.provider.dao.map.ProductMapper;
 import com.benxiaopao.provider.dao.model.*;
 import com.benxiaopao.thrift.model.*;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -27,6 +34,12 @@ import java.util.List;
 public class OrderService {
     @Resource
     private OrderMapper orderMapper;
+    @Resource
+    private OrderItemMapper orderItemMapper;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private ProductService productService;
 
     /**
      * 根据条件获取订单列表，带分页
@@ -43,7 +56,7 @@ public class OrderService {
         //查询列表
         Order order = new Order();
         if(tpListOrder.getOrder() != null){
-            BeanUtils.copyProperties(tpListOrder.getOrder(), order, "createTime", "updateTime");
+            BeanUtils.copyProperties(tpListOrder.getOrder(), order, "createTime", "updateTime", "totalAmout", "realTotalAmout", "shipmentExpense");
         }
         List<Order> orders = this.listOrderByWhere(order, start, pageSize);
         int count = this.countOrderByWhere(order);
@@ -60,9 +73,15 @@ public class OrderService {
             @Override
             public TROrder apply(Order order) {
                 TROrder trOrder = new TROrder();
-                BeanUtils.copyProperties(order, trOrder, "createTime", "updateTime");
+                BeanUtils.copyProperties(order, trOrder, "createTime", "updateTime", "totalAmout", "realTotalAmout", "shipmentExpense");
                 trOrder.setCreateTime(order.getCreateTime().getTime());
                 trOrder.setUpdateTime(order.getUpdateTime().getTime());
+                trOrder.setTotalAmout(order.getTotalAmout().doubleValue());
+                trOrder.setRealTotalAmout(order.getRealTotalAmout().doubleValue());
+                trOrder.setShipmentExpense(order.getShipmentExpense().doubleValue());
+                trOrder.setOrderStatus(order.getOrderStatus());
+                trOrder.setOrderFrom(order.getOrderFrom());
+                trOrder.setOrderType(order.getOrderType());
                 return trOrder ;
             }
         }).toList();
@@ -80,7 +99,7 @@ public class OrderService {
     public TRListOrder listOrder(TPListOrder tpListOrder) throws Exception {
         Order order = new Order();
         if(tpListOrder.getOrder() != null){
-            BeanUtils.copyProperties(tpListOrder.getOrder(), order, "createTime", "updateTime");
+            BeanUtils.copyProperties(tpListOrder.getOrder(), order, "createTime", "updateTime", "totalAmout", "realTotalAmout", "shipmentExpense");
         }
         List<Order> orders = this.listOrderByWhere(order, null, null);
 
@@ -93,9 +112,15 @@ public class OrderService {
             @Override
             public TROrder apply(Order order) {
                 TROrder trOrder = new TROrder();
-                BeanUtils.copyProperties(order, trOrder, "createTime", "updateTime");
+                BeanUtils.copyProperties(order, trOrder, "createTime", "updateTime", "totalAmout", "realTotalAmout", "shipmentExpense");
                 trOrder.setCreateTime(order.getCreateTime().getTime());
                 trOrder.setUpdateTime(order.getUpdateTime().getTime());
+                trOrder.setTotalAmout(order.getTotalAmout().doubleValue());
+                trOrder.setRealTotalAmout(order.getRealTotalAmout().doubleValue());
+                trOrder.setShipmentExpense(order.getShipmentExpense().doubleValue());
+                trOrder.setOrderStatus(order.getOrderStatus());
+                trOrder.setOrderFrom(order.getOrderFrom());
+                trOrder.setOrderType(order.getOrderType());
                 return trOrder ;
             }
         }).toList();
@@ -199,9 +224,15 @@ public class OrderService {
         Order order = this.getOrderById(orderId);
         if(order != null){
             trOrder = new TROrder();
-            BeanUtils.copyProperties(order, trOrder, "createTime", "updateTime");
+            BeanUtils.copyProperties(order, trOrder, "createTime", "updateTime", "totalAmout", "realTotalAmout", "shipmentExpense");
             trOrder.setCreateTime(order.getCreateTime().getTime());
             trOrder.setUpdateTime(order.getUpdateTime().getTime());
+            trOrder.setTotalAmout(order.getTotalAmout().doubleValue());
+            trOrder.setRealTotalAmout(order.getRealTotalAmout().doubleValue());
+            trOrder.setShipmentExpense(order.getShipmentExpense().doubleValue());
+            trOrder.setOrderStatus(order.getOrderStatus());
+            trOrder.setOrderFrom(order.getOrderFrom());
+            trOrder.setOrderType(order.getOrderType());
         }
         return trOrder;
     }
@@ -215,5 +246,92 @@ public class OrderService {
         Order order = orderMapper.selectByPrimaryKey(orderId);
         Preconditions.checkNotNull(order, "获取订单成员失败");
         return order;
+    }
+
+    /**
+     * 创建订单
+     * @param productIdList
+     * @param productCountList
+     */
+    @Transactional(readOnly = false, propagation = Propagation.REQUIRED, rollbackFor = Exception.class, timeout = 10)
+    public String createOrder(int userId, List<String> productIdList, List<Integer> productCountList) throws Exception {
+        User user = userService.getUserById(userId);
+        String orderId = KeyUtil.genUniqueKey();
+
+        // 订单明细表
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        BigDecimal realTotalAmount = BigDecimal.ZERO;
+        Product product = null;
+        String productId = null;
+        Integer productCount = 0;
+        OrderItem orderItem = null;
+        int orderItemRecords = 0;
+        for(int i = 0; i < productIdList.size(); i++){
+            productId = productIdList.get(i);
+            productCount = productCountList.get(i);
+
+            product = productService.getProductById(productId);
+
+            orderItem = new OrderItem();
+            orderItem.setItemId(KeyUtil.genUniqueKey());
+            orderItem.setOrderId(orderId);
+            orderItem.setProductId(product.getProductId());
+            orderItem.setProductName(product.getProductName());
+            orderItem.setProductIcon(product.getIcon());
+            orderItem.setOriginPrice(product.getPrice());
+            orderItem.setShopPrice(product.getPrice());
+            orderItem.setProductCount(productCount);
+
+
+            totalAmount = totalAmount.add(orderItem.getOriginPrice().multiply(BigDecimal.valueOf(orderItem.getProductCount())));
+            realTotalAmount = realTotalAmount.add(orderItem.getShopPrice().multiply(BigDecimal.valueOf(orderItem.getProductCount())));
+
+            orderItemRecords = orderItemMapper.insertSelective(orderItem);
+            Preconditions.checkArgument(orderItemRecords > 0, "创建订单失败");
+        }
+
+        // 订单表
+        Order order = new Order();
+        order.setOrderId(orderId);
+        order.setTotalAmout(totalAmount);
+        order.setRealTotalAmout(realTotalAmount);
+        order.setShipmentExpense(BigDecimal.ZERO);
+        order.setOrderStatus((short)1);
+        order.setOrderType((byte)1);
+        order.setOrderFrom((byte)3);
+        order.setBuyerId(user.getUserId());
+        order.setConsignee(Strings.isNullOrEmpty(user.getRealName())? user.getNickName() : user.getRealName());
+        order.setTel(user.getMobile());
+        int orderRecords = orderMapper.insertSelective(order);
+        Preconditions.checkArgument(orderRecords > 0, "创建订单失败");
+        return orderId;
+    }
+
+    public List<OrderItem> listOrderItemByOrderId(String orderId) throws Exception {
+        OrderItemExample example = new OrderItemExample();
+        OrderItemExample.Criteria criteria = example.createCriteria();
+        criteria.andOrderIdEqualTo(orderId);
+        List<OrderItem> orderItemList = orderItemMapper.selectByExample(example);
+        return orderItemList;
+    }
+
+    /**
+     * 支付订单
+     * @param userId
+     * @param orderId
+     */
+    @Transactional(readOnly = false, propagation = Propagation.REQUIRED, rollbackFor = Exception.class, timeout = 10)
+    public void payOrder(int userId, String orderId) throws Exception {
+        Order order = this.getOrderById(orderId);
+        Preconditions.checkNotNull(order, "订单号有误，查无此单");
+        Preconditions.checkArgument(order.getBuyerId().intValue() == userId, "订单数据有误，请确认参数是否正确");
+
+        order = orderMapper.getOrderByIdForUpdate(orderId);
+        // 订单表
+        Order updateOrder = new Order();
+        updateOrder.setOrderId(order.getOrderId());
+        updateOrder.setOrderStatus((short)2);
+        int records = orderMapper.updateByPrimaryKeySelective(updateOrder);
+        Preconditions.checkArgument(records > 0, "支付订单失败");
     }
 }
