@@ -148,6 +148,19 @@ public class TSRestaurantServiceImpl implements TSRestaurantService.Iface {
     }
 
     @Override
+    public int closeOrderById(String s) throws TException {
+        log.info("# TSRestaurantServiceImpl::closeOrderById(..) -> entry: orderId={}", s);
+        int records = 0;
+        try {
+            records = orderService.closeOrderById(s);
+        } catch (Exception e) {
+            log.error("# 出错：", e);
+            throw new TException(e.getMessage());
+        }
+        return records;
+    }
+
+    @Override
     public TRListProduct listProductByPage(TPListProduct tpListProduct) throws TException {
         log.info("# TSProductServiceImpl::listProductByPage(..) -> entry: tpListProduct={}", tpListProduct);
         TRListProduct trListProduct = null;

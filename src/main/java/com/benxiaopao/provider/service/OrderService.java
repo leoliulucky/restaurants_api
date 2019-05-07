@@ -150,7 +150,7 @@ public class OrderService {
         //由参数决定是否进行分页
         if(start != null && start >= 0 && offset != null && offset > 0){
             //排序条件、限制查询记录数
-            example.setOrderByClause("orderId asc limit " + start + ", " + offset);
+            example.setOrderByClause("createTime desc limit " + start + ", " + offset);
         }
 
         return orderMapper.selectByExample(example);
@@ -304,6 +304,10 @@ public class OrderService {
         order.setTel(user.getMobile());
         int orderRecords = orderMapper.insertSelective(order);
         Preconditions.checkArgument(orderRecords > 0, "创建订单失败");
+
+        // 通知后台管理中心有新订单消息了 TODO
+
+
         return orderId;
     }
 
@@ -333,5 +337,23 @@ public class OrderService {
         updateOrder.setOrderStatus((short)2);
         int records = orderMapper.updateByPrimaryKeySelective(updateOrder);
         Preconditions.checkArgument(records > 0, "支付订单失败");
+    }
+
+    /**
+     * 关闭订单
+     * @param orderId 订单id
+     */
+    public int closeOrderById(String orderId) throws Exception {
+        Order order = this.getOrderById(orderId);
+        Preconditions.checkNotNull(order, "要关闭的订单不存在");
+
+        log.info("#关闭订单，其中orderId=" + orderId);
+        order = orderMapper.getOrderByIdForUpdate(orderId);
+        Order updateOrder = new Order();
+        updateOrder.setOrderId(order.getOrderId());
+        updateOrder.setOrderStatus((short)5);
+        int records = orderMapper.updateByPrimaryKeySelective(updateOrder);
+        Preconditions.checkArgument(records > 0, "关闭订单失败");
+        return records;
     }
 }
