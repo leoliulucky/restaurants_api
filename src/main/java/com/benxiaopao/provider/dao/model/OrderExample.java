@@ -1206,6 +1206,66 @@ public class OrderExample {
             return (Criteria) this;
         }
 
+        public Criteria andRestaurantIdIsNull() {
+            addCriterion("restaurantId is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRestaurantIdIsNotNull() {
+            addCriterion("restaurantId is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRestaurantIdEqualTo(Integer value) {
+            addCriterion("restaurantId =", value, "restaurantId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRestaurantIdNotEqualTo(Integer value) {
+            addCriterion("restaurantId <>", value, "restaurantId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRestaurantIdGreaterThan(Integer value) {
+            addCriterion("restaurantId >", value, "restaurantId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRestaurantIdGreaterThanOrEqualTo(Integer value) {
+            addCriterion("restaurantId >=", value, "restaurantId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRestaurantIdLessThan(Integer value) {
+            addCriterion("restaurantId <", value, "restaurantId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRestaurantIdLessThanOrEqualTo(Integer value) {
+            addCriterion("restaurantId <=", value, "restaurantId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRestaurantIdIn(List<Integer> values) {
+            addCriterion("restaurantId in", values, "restaurantId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRestaurantIdNotIn(List<Integer> values) {
+            addCriterion("restaurantId not in", values, "restaurantId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRestaurantIdBetween(Integer value1, Integer value2) {
+            addCriterion("restaurantId between", value1, value2, "restaurantId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRestaurantIdNotBetween(Integer value1, Integer value2) {
+            addCriterion("restaurantId not between", value1, value2, "restaurantId");
+            return (Criteria) this;
+        }
+
         public Criteria andCreateTimeIsNull() {
             addCriterion("createTime is null");
             return (Criteria) this;

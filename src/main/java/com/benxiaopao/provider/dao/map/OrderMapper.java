@@ -61,7 +61,7 @@ public interface OrderMapper {
         "pOrderId, buyerId, ",
         "consignee, province, ",
         "city, district, ",
-        "address, tel, createTime, ",
+        "address, tel, restaurantId, createTime, ",
         "updateTime)",
         "values (#{orderId,jdbcType=VARCHAR}, #{payType,jdbcType=INTEGER}, ",
         "#{totalAmout,jdbcType=DECIMAL}, #{realTotalAmout,jdbcType=DECIMAL}, ",
@@ -70,7 +70,7 @@ public interface OrderMapper {
         "#{pOrderId,jdbcType=VARCHAR}, #{buyerId,jdbcType=INTEGER}, ",
         "#{consignee,jdbcType=VARCHAR}, #{province,jdbcType=INTEGER}, ",
         "#{city,jdbcType=INTEGER}, #{district,jdbcType=INTEGER}, ",
-        "#{address,jdbcType=VARCHAR}, #{tel,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, ",
+        "#{address,jdbcType=VARCHAR}, #{tel,jdbcType=VARCHAR}, #{restaurantId,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, ",
         "#{updateTime,jdbcType=TIMESTAMP})"
     })
     int insert(Order record);
@@ -108,6 +108,7 @@ public interface OrderMapper {
         @Result(column="district", property="district", jdbcType=JdbcType.INTEGER),
         @Result(column="address", property="address", jdbcType=JdbcType.VARCHAR),
         @Result(column="tel", property="tel", jdbcType=JdbcType.VARCHAR),
+        @Result(column="restaurantId", property="restaurantId", jdbcType=JdbcType.INTEGER),
         @Result(column="createTime", property="createTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="updateTime", property="updateTime", jdbcType=JdbcType.TIMESTAMP)
     })
@@ -123,7 +124,7 @@ public interface OrderMapper {
         "select",
         "orderId, payType, totalAmout, realTotalAmout, shipmentExpense, orderStatus, ",
         "orderType, orderFrom, pOrderId, buyerId, consignee, province, city, district, ",
-        "address, tel, createTime, updateTime",
+        "address, tel, restaurantId, createTime, updateTime",
         "from order_info",
         "where orderId = #{orderId,jdbcType=VARCHAR}"
     })
@@ -144,6 +145,7 @@ public interface OrderMapper {
         @Result(column="district", property="district", jdbcType=JdbcType.INTEGER),
         @Result(column="address", property="address", jdbcType=JdbcType.VARCHAR),
         @Result(column="tel", property="tel", jdbcType=JdbcType.VARCHAR),
+        @Result(column="restaurantId", property="restaurantId", jdbcType=JdbcType.INTEGER),
         @Result(column="createTime", property="createTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="updateTime", property="updateTime", jdbcType=JdbcType.TIMESTAMP)
     })
@@ -199,6 +201,7 @@ public interface OrderMapper {
           "district = #{district,jdbcType=INTEGER},",
           "address = #{address,jdbcType=VARCHAR},",
           "tel = #{tel,jdbcType=VARCHAR},",
+          "restaurantId = #{restaurantId,jdbcType=INTEGER},",
           "createTime = #{createTime,jdbcType=TIMESTAMP},",
           "updateTime = #{updateTime,jdbcType=TIMESTAMP}",
         "where orderId = #{orderId,jdbcType=VARCHAR}"

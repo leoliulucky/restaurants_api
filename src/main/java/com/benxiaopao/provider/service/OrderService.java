@@ -1,5 +1,9 @@
 package com.benxiaopao.provider.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.benxiaopao.common.exception.BizException;
+import com.benxiaopao.common.util.HttpClientUtil;
 import com.benxiaopao.provider.common.util.KeyUtil;
 import com.benxiaopao.provider.dao.map.OrderItemMapper;
 import com.benxiaopao.provider.dao.map.OrderMapper;
@@ -11,6 +15,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +27,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 订单业务逻辑服务处理类
@@ -40,6 +46,8 @@ public class OrderService {
     private UserService userService;
     @Autowired
     private ProductService productService;
+
+    private static String MGMT_URL = "http://localhost:8081";
 
     /**
      * 根据条件获取订单列表，带分页
@@ -175,6 +183,9 @@ public class OrderService {
         if(order != null && StringUtils.hasText(order.getOrderId())){
             criteria.andOrderIdEqualTo(order.getOrderId());
         }
+        if(order != null && order.getRestaurantId() > 0){
+            criteria.andRestaurantIdEqualTo(order.getRestaurantId());
+        }
         return example;
     }
 
@@ -302,11 +313,26 @@ public class OrderService {
         order.setBuyerId(user.getUserId());
         order.setConsignee(Strings.isNullOrEmpty(user.getRealName())? user.getNickName() : user.getRealName());
         order.setTel(user.getMobile());
+        order.setRestaurantId(product.getRestaurantId());
         int orderRecords = orderMapper.insertSelective(order);
         Preconditions.checkArgument(orderRecords > 0, "创建订单失败");
 
-        // 通知后台管理中心有新订单消息了 TODO
-
+        // 通知后台管理中心有新订单消息了
+        try{
+            //调用接口
+            Map<String, Object> params = Maps.newHashMap();
+            params.put("orderId", orderId);
+            String response = HttpClientUtil.doPost(MGMT_URL + "/biz/order/notify", params);
+            log.info("# order notify response = {}", response);
+            JSONObject responseObj = JSON.parseObject(response);
+            int code = responseObj.getInteger("code");
+            if(code <= 0){
+                log.info("# 调用通知订单API接口出错：{}", responseObj.getString("msg"));
+                throw new BizException("通知订单API接口出错: " + responseObj.getString("msg"));
+            }
+        }catch (Exception e){
+            log.error("#通知管理中心有新订单失败", e);
+        }
 
         return orderId;
     }

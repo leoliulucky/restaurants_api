@@ -109,6 +109,10 @@ public class OrderSqlProvider {
         if (record.getTel() != null) {
             sql.VALUES("tel", "#{tel,jdbcType=VARCHAR}");
         }
+
+        if (record.getRestaurantId() != null) {
+            sql.VALUES("restaurantId", "#{restaurantId,jdbcType=INTEGER}");
+        }
         
         if (record.getCreateTime() != null) {
             sql.VALUES("createTime", "#{createTime,jdbcType=TIMESTAMP}");
@@ -149,6 +153,7 @@ public class OrderSqlProvider {
         sql.SELECT("district");
         sql.SELECT("address");
         sql.SELECT("tel");
+        sql.SELECT("restaurantId");
         sql.SELECT("createTime");
         sql.SELECT("updateTime");
         sql.FROM("order_info");
@@ -237,6 +242,10 @@ public class OrderSqlProvider {
         if (record.getTel() != null) {
             sql.SET("tel = #{record.tel,jdbcType=VARCHAR}");
         }
+
+        if (record.getRestaurantId() != null) {
+            sql.SET("restaurantId = #{record.restaurantId,jdbcType=INTEGER}");
+        }
         
         if (record.getCreateTime() != null) {
             sql.SET("createTime = #{record.createTime,jdbcType=TIMESTAMP}");
@@ -276,6 +285,7 @@ public class OrderSqlProvider {
         sql.SET("district = #{record.district,jdbcType=INTEGER}");
         sql.SET("address = #{record.address,jdbcType=VARCHAR}");
         sql.SET("tel = #{record.tel,jdbcType=VARCHAR}");
+        sql.SET("restaurantId = #{record.restaurantId,jdbcType=INTEGER}");
         sql.SET("createTime = #{record.createTime,jdbcType=TIMESTAMP}");
         sql.SET("updateTime = #{record.updateTime,jdbcType=TIMESTAMP}");
         
@@ -352,6 +362,10 @@ public class OrderSqlProvider {
         
         if (record.getTel() != null) {
             sql.SET("tel = #{tel,jdbcType=VARCHAR}");
+        }
+
+        if (record.getRestaurantId() != null) {
+            sql.SET("restaurantId = #{restaurantId,jdbcType=INTEGER}");
         }
         
         if (record.getCreateTime() != null) {

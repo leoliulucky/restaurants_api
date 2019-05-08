@@ -146,6 +146,9 @@ public class RestaurantService {
         RestaurantExample example = new RestaurantExample();
         RestaurantExample.Criteria criteria = example.createCriteria();
 
+        if(restaurant != null && restaurant.getRestaurantId() != null && restaurant.getRestaurantId() > 0){
+            criteria.andRestaurantIdEqualTo(restaurant.getRestaurantId());
+        }
         //名称
         if(restaurant != null && StringUtils.hasText(restaurant.getRestaurantName())){
             criteria.andRestaurantNameEqualTo(restaurant.getRestaurantName());
