@@ -43,3 +43,8 @@ thrift:
 
 server:
   port: 9999
+
+local:
+  config:
+    recommend:
+      file-name: recommendData.txt

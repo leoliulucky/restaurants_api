@@ -1,6 +1,7 @@
 package com.benxiaopao.api;
 
 import com.benxiaopao.common.util.ViewResult;
+import com.benxiaopao.provider.common.constant.CommonConstant;
 import com.benxiaopao.provider.dao.model.Product;
 import com.benxiaopao.provider.dao.model.ProductCategory;
 import com.benxiaopao.provider.dao.model.Restaurant;
@@ -41,7 +42,7 @@ public class RestaurantController {
      * @throws Exception
      */
     @PostMapping(value = "/list")
-    public String listRestaurantByPage(Restaurant restaurant, @RequestParam(defaultValue="1")int pageNum, @RequestParam(defaultValue="10")int pageSize) throws Exception{
+    public String listRestaurantByPage(Restaurant restaurant, @RequestParam(defaultValue="1")int pageNum, @RequestParam(defaultValue="10")int pageSize, int userId) throws Exception{
         try{
             List<Restaurant> restaurantList = restaurantService.listRestaurantByPage(restaurant, pageNum, pageSize);
             int totalCount = restaurantService.countRestaurantByWhere(restaurant);
@@ -50,10 +51,14 @@ public class RestaurantController {
 //            Pagination pagination = Pagination.currentPagination(pageNum, pageSize);
 //            pagination.setTotalCount(totalCount);
 
+            List<String> recommendDataList = CommonConstant.getRecommendDataByUserId(userId);
+            log.info("# recommendDataList.size()={}", recommendDataList.size());
+
             return ViewResult.newInstance()
                     .code(1).msg("获取餐馆列表成功")
                     .put("restaurantList", restaurantList)
                     .put("totalCount", totalCount)
+                    .put("recommendDataList", recommendDataList)
                     .json();
         } catch (Exception e) {
             log.error("#获取餐馆列表出错：", e);
